@@ -1,0 +1,324 @@
+---
+title: "Workshop 4"
+author: "Kaysha Kenney"
+date: "2023-05-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 5.3 Tibble ### 
+
+# To use tibble we need to bring it in from the tidyverse package 
+```{r}
+library(tidyverse)
+```
+# We need to convert regular data frames into tibbles 
+```{r}
+as_tibble(iris)
+
+```
+
+# As part of tibble, we can refer to variables that we just created. (Fixing a mistake in here, make sure to have opening and closing parentheses). 
+```{r}
+tibble(
+  x = 1:5, 
+  y = 1, 
+  z = x ^ 2 + y) 
+```
+# Creating non-syntactic names that are not valid in R. In this example we are going to use a ":)" representing a smile 
+```{r}
+tb <- tibble(
+  `:)` = "smile", 
+  ` ` = "space",
+  `2000` = "number"
+)
+tb
+```
+# Making tribbles -> transposed tribbles. This helps us do data entry directly in our script. This helps us lay out small amounts of data that's easy to read
+```{r}
+tribble(
+  ~x, ~y, ~z,
+  #--|--|----
+  "a", 2, 3.6,
+  "b", 1, 8.5
+)
+```
+
+# Differences in tibbles and data frames: tibbles only print first 10 rows and all columns that can fit on the screen, easier to work with really large data. Example below. 
+```{r}
+as_tibble(iris)
+```
+
+# tiblles also prevent us from overwhelming our program when it prints massive data frames. These are the default displays printed below. 
+```{r}
+tibble(
+  a = lubridate::now() + runif(1e3) * 86400,
+  b = lubridate::today() + runif(1e3) * 30,
+  c = 1:1e3,
+  d = runif(1e3),
+  e = sample(letters, 1e3, replace = TRUE)
+)
+```
+
+# By using the print function we can designate the number of rows and display. Designate the number of rows displayed by using print (n = 10) and show all columns by designating width = Inf 
+```{r}
+install.packages("nycflights13")
+library(nycflights13)
+nycflights13::flights %>% 
+  print(n = 10, width = Inf)
+```
+
+# Pull out a single variable from a data frame. We do this by using a ($).  
+```{r}
+df <- tibble(
+  x = runif(5),
+  y = rnorm(5)
+)
+
+# Extract by name
+df$x
+#> [1] 0.73296674 0.23436542 0.66035540 0.03285612 0.46049161
+df[["x"]]
+#> [1] 0.73296674 0.23436542 0.66035540 0.03285612 0.46049161
+
+# Extract by row position
+df[[1]]
+#> [1] 0.73296674 0.23436542 0.66035540 0.03285612 0.46049161
+
+# Extract by exact position
+df[[2,2]]
+#[1] -1.751506
+```
+# start to use pipes 
+```{r}
+df %>% .$x 
+df %>% .[["x"]]
+```
+
+# Tibbles don't do partial matching. Tibble will create a warning message if you don't call out something exactly in the data frama. See the warning message in this code below 
+```{r}
+df <- tibble(
+    xxx = runif(5),
+    y = rnorm(5)
+)
+df$xx
+```
+
+# First this is calling the data frame. Then calling a variable by name. Then calling the exact position "xyz" from the data frame. 
+```{r}
+df <- data.frame(abc = 1, xyz = "a")
+df
+df$x #call by name
+df[, "xyz"] #call by exact position
+```
+
+# 5.4 Import Data ###  
+
+# By using read_csv () function, we can print out specific columns. 
+```{r}
+read_csv("a,b,c
+1,2,3
+4,5,6")
+```
+
+# In cases where we do not need the first line of data, we use the skip function. Or we can use the # function to drop lines from the data set that start with the #. See the next 2 code chunks as examples. 
+
+```{r}
+read_csv("The first line of metadata
+  The second line of metadata
+  x,y,z
+  1,2,3", skip = 2)
+```
+
+```{r}
+read_csv("# A comment I want to skip
+  x,y,z
+  1,2,3", comment = "#")
+```
+
+# By using the /n function we can add a new line/break. We can also use col_names to create a character vector to be used as the column names.  
+```{r}
+read_csv("1,2,3\n4,5,6", col_names = c("x", "y", "z"))
+#> Rows: 2 Columns: 3
+#> ── Column specification 
+```
+# Can also use the function na that will specify a value that are used to represent missing values in our data. 
+```{r}
+read_csv("a,b,c\n1,2,.", na = ".")
+#> Rows: 1 Columns: 3
+#> ── Column specification 
+```
+
+# 5.5 Tidying Data using Tidyr ### 
+
+# Make sure tidy is loaded into the program 
+```{r}
+library(tidyverse)
+```
+
+# 5.5.1 Tidy Data ### 
+
+# We always want to get our data set into the tidy format 
+```{r}
+table1
+```
+```{r}
+table2
+```
+```{r}
+table3
+```
+```{r}
+table4a
+```
+
+```{r}
+table4b
+```
+
+# Essential skill as a data scientist: understanding if my data fram structure is optimal/tidy. 
+```{r}
+# Compute rate per 10,000 
+table1 %>% 
+  mutate(rate = cases / population * 10000)
+
+```
+```{r}
+# Compute cases per year 
+table1 %>% 
+  count(year, wt = cases)
+```
+```{r}
+# Visualise changes over time
+library(ggplot2)
+ggplot(table1, aes(year, cases)) + 
+  geom_line(aes(group = country), colour = "grey50") + 
+  geom_point(aes(colour = country))
+```
+# 5.5.2 Spreading and gathering data tables ### 
+
+# This section uses pivot function. This is orginal data set from Table 4 
+```{r}
+table4a
+```
+
+# This is table 4a with pivot function. To fix the data set, we use the pivot_longer function to get 3 parameteers: columns who namre are values, not varialbles, the name of the variable to move to the column names (year), and name of the variable to move to the column values (cases).  
+```{r}
+table4a %>% 
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "cases")
+```
+# Using the pivot_longer function to tidy table 4b
+```{r}
+table4b %>% 
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "population")
+```
+
+# combining the tidy versions of table4a and table4b into a single tibble by using the dplyr::left_join() function. 
+```{r}
+tidy4a <- table4a %>% 
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "cases")
+tidy4b <- table4b %>% 
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "population")
+left_join(tidy4a, tidy4b)
+```
+# Make the table shorter and wider by creating new seperate columns for cases and populations and using their associated values. 
+```{r}
+table2 %>%
+    pivot_wider(names_from = type, values_from = count)
+```
+
+# 5.5.3 Seperating and uniting data tables ### 
+
+# Table 3 has its own issues that we need to fix. The rate column has 2 variables: cases and population. We fix this by using the seperate () function which will seperate the one column into multiple columns. 
+```{r}
+table3
+```
+# fixed table 3 
+```{r}
+table3 %>% 
+  separate(rate, into = c("cases", "population"))
+```
+
+# Then we use the seperate function to split the values. 
+```{r}
+table3 %>% 
+  separate(rate, into = c("cases", "population"), sep = "/")
+```
+# values in these columns are actually numbers, we want to convert them to better types using convert = true
+```{r}
+table3 %>% 
+  separate(rate, into = c("cases", "population"), convert = TRUE)
+```
+
+# we can also change the data to only display the last 2 digits of each year in the century and year columns. 
+```{r}
+table3 %>% 
+  separate(year, into = c("century", "year"), sep = 2)
+```
+
+# to combine multiple columns, we use the unite function 
+```{r}
+table5 %>% 
+  unite(new, century, year, sep = "")
+```
+
+# 5.5.4 Handling missing values ### 
+
+# Missing data as NA 
+```{r}
+stocks <- tibble(
+  year   = c(2015, 2015, 2015, 2015, 2016, 2016, 2016),
+  qtr    = c(   1,    2,    3,    4,    2,    3,    4),
+  return = c(1.88, 0.59, 0.35,   NA, 0.92, 0.17, 2.66)
+)
+```
+
+# See the missing data as NA 
+```{r}
+stocks %>% 
+  pivot_wider(names_from = year, values_from = return)
+```
+
+# how to make explicit missing values implicit using values_drop_na = TRUE 
+```{r}
+stocks %>% 
+  pivot_wider(names_from = year, values_from = return) %>% 
+  pivot_longer(
+    cols = c(`2015`, `2016`), 
+    names_to = "year", 
+    values_to = "return", 
+    values_drop_na = TRUE
+  )
+```
+# to make clear that missing values represent actual missing data in the data set, use the complete function 
+```{r}
+stocks
+stocks %>% 
+  complete(year, qtr)
+```
+
+# By using the fill function we can fill in the missing values. It takes columns with missing values and carries the last observation forward and replaces thenm with the most recent non-missing value. 
+```{r}
+treatment <- tribble(
+  ~ person,           ~ treatment, ~response,
+  "Derrick Whitmore", 1,           7,
+  NA,                 2,           10,
+  NA,                 3,           9,
+  "Katherine Burke",  1,           4
+)
+treatment
+
+treatment %>% 
+  fill(person)
+```
+
+# 5.6 Learning Relational Data ###  
+
+```{r}
+
+```
+
+# 5.7 Pipes for more readable workflows ### 
