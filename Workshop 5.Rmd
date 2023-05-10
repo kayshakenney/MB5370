@@ -1,0 +1,146 @@
+---
+title: "Workshop 5"
+author: "Kaysha Kenney"
+date: "2023-05-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load into R library 
+```{r}
+library(tidyverse)
+library(sf) # simple features
+library (terra) # for raster
+library(tmap) # Thematic maps are geographical maps in which spatial data distributions are visualized
+
+```
+
+# Upload copepod data set. Took the folder from my desktop and put it in my GitHub folder and into R and into my end to end analysis folder so the data set in now in my R, which I can then upload. 
+```{r}
+library(readr)
+dat <- read_csv("data-for-course/copepods_raw.csv")
+dat
+  
+```
+
+
+# 6.7.1 Check coordinates ### 
+# First we need to make a ggplot to plot the coordinates for the samples 
+
+```{r}
+library(ggplot2)
+ggplot(dat) + 
+  aes(x = longitude, y = latitude, color = richness_raw) +
+  geom_point()
+```
+
+# Look at the richness data (main variable). Visualize richness in non-spatial way with latitue on the x axis and richness on the y axis.  
+```{r}
+ggplot(dat, aes(x = latitude, y = richness_raw)) + 
+  stat_smooth() + 
+  geom_point()
+```
+
+# 6.8 Getting going with maps ### 
+# repeat the same richness but with packages for GIS and mapping. Turn data into 'simple features collection' 
+```{r}
+sdat <- st_as_sf(dat, coords = c("longitude", "latitude"), 
+                 crs = 4326)
+```
+
+# 6.9 Coordinate Reference Systems ### 
+
+```{r}
+crs4326 <- st_crs(4326)
+crs4326 # look at the whole CRS
+crs4326$Name # pull out just the name of the crs
+```
+```{r}
+crs4326$wkt # crs in well-known text format
+```
+# 6.10 Feature Collection ### 
+
+```{r}
+sdat
+```
+# 6.11 Cartography ### 
+
+# Mapping, only plotting the richness column. 
+```{r}
+plot(sdat["richness_raw"])
+
+```
+```{r}
+plot(sdat)
+```
+
+# 6.12 Thematic maps for communication ### 
+
+# Going to build and add on layers 
+```{r}
+#using tmap
+tm1 <- tm_shape(sdat) + 
+  tm_dots(col = "richness_raw")
+tm1
+```
+
+# Save the map to the working directory. Make sure to change the output path if I need to save it to a different folder 
+```{r}
+tmap_save(tm1, filename = "Richness-map.png", 
+          width = 600, height = 600)
+```
+
+# 6.13 Mapping spatial polygons as layers ### 
+# Read the shapefiles directly into R with the st_read comman, similar to read_csv but for spatial files 
+```{r}
+aus <- st_read("data-for-course/spatial-data/Aussie/Aussie.shp")
+```
+```{r}
+shelf <- st_read("data-for-course/spatial-data/aus_shelf/aus_shelf.shp")
+regions <- st_read("data-for-course/spatial-data/regions/regions.shp")
+```
+```{r}
+aus
+```
+
+# 6.13.12 Mapping your polygons ### 
+
+# Making a map of polygons 
+```{r}
+tm_shape(shelf) + 
+  tm_polygons()
+```
+```{r}
+tm_shape(shelf, bbox = sdat) + 
+  tm_polygons() +
+  tm_shape(aus) + 
+  tm_polygons() + 
+  tm_shape(sdat) + 
+  tm_dots()
+```
+
+# 6.14 Exploring t_map ### 
+
+# Changing the style of the map, similar to ggplot themes function, allows us to customize it 
+```{r}
+vignette('tmap-getstarted')
+```
+
+# Customizing the Australia map 
+```{r}
+tm_shape(regions) +
+  tm_polygons(col = "region", palette = "magma") +
+  tm_shape(shelf, bbox = sdat) + 
+  tm_polygons() +
+  tm_shape(aus) + 
+  tm_polygons(col = "adm") + 
+  tm_shape(sdat) + 
+  tm_dots(col = "richness_raw")+ 
+  tmap_style("natural") 
+
+  
+```
+
