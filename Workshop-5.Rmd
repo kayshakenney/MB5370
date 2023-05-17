@@ -150,9 +150,8 @@ tm_shape(regions) +
   tm_shape(aus) + 
   tm_polygons(col = "adm") + 
   tm_shape(sdat) + 
-  tm_dots(col = "richness_raw") + 
-  tmap_style("natural") + 
-  tm_layout(legend.position = c("left", "top"))
+  tm_dots(col = "richness_raw")+ 
+  tmap_style("natural") 
 
 ```
 # save the new customized map 

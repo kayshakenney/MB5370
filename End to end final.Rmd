@@ -1,0 +1,33 @@
+---
+title: "End to end final"
+author: "Kaysha Kenney"
+date: "2023-05-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(readxl)
+library(ggplot2)
+shark <- read_excel("~/Desktop/shark.xlsx")
+View(shark)
+```
+
+```{r}
+shark$Total <- as.numeric(as.character(shark$Total))
+str(shark$Total)
+
+shark$CalendarYear <- as.numeric(as.character(shark$CalendarYear))
+str(shark$CalendarYear)
+```
+
+```{r}
+ggplot(shark, aes(x = CalendarYear, y = Total, color = Area)) +
+         geom_point() +
+  geom_line()
+```
+

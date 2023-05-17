@@ -65,7 +65,7 @@ tibble(
 
 # By using the print function we can designate the number of rows and display. Designate the number of rows displayed by using print (n = 10) and show all columns by designating width = Inf 
 ```{r}
-install.packages("nycflights13")
+# install.packages("nycflights13")
 library(nycflights13)
 nycflights13::flights %>% 
   print(n = 10, width = Inf)
@@ -315,10 +315,6 @@ treatment %>%
   fill(person)
 ```
 
-# 5.6 Learning Relational Data ###  
-
-```{r}
 
 ```
 
-# 5.7 Pipes for more readable workflows ### 
